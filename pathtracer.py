@@ -118,6 +118,8 @@ while not glfw.window_should_close(window):
         theta += dangle
 
     camera_data = np.array([rho, theta, phi, focus])
+    if sum(np.array(key_status)) > 0:
+        print(rho, np.degrees(theta), np.degrees(phi))
 
     # OpenGL Stuff
     glfw.poll_events()  # makes application responsive
