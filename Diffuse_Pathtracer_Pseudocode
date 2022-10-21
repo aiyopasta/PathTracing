@@ -1,0 +1,57 @@
+Question: Where are we accounting for the fact that if we sample from the BRDF, there's a chance we could miss completely?
+		  In other words, don't we need to divide by the pdf of having hit a particular point and not missed? 
+
+Answer: This would be a problem only if we were sampling wrt all the surfaces on the scene (or only solid angles corresponding to those surfaces),
+		but we're not. Instead, we used a trick to transform that integral over an awkward domain of integration into one over all possible solid
+		angles, and introduce a "visibility term" into the integrand to account for this. So when we draw a sample wrt the BSDF, this doesn't introduce bias!
+		All it does is mess with the expected value and variance of the POPULATION (i.e. brings down the mean and variance of the true radiance at a point in
+		a direction, than if it we integrated over the awkward domains). The estimator, however, remains unbiased.
+
+
+radiance = 0
+
+for i in {1, ... , n} {
+	throughput = 1
+
+	Shoot ray from eye through random location on pixel (e.g. stratified sampling).   // This is for generating random 0-bounce paths, but gives us anti-aliasing too.
+	bounce = 0
+
+	while True {
+		Find intersection of ray in scene. 
+
+		if intersected {
+			if we hit light source {
+				if bounce == 0 {
+					radiance = light_source.Le;   // Why no division by probability? Because there's no Monte-Carlo sampling required here if this is a light. We just 								  // get the light emitted from there directly. 
+				}
+
+				break;  // Why? Does this introduce bias if it's not the first bounce? Because this ray, though it doesn't hit anything, is a legit sample from H^2, 			// except the integrand is simply 0 in this case as the argument of the giant indicator function is "false", because evidently one of the 
+			
+			}
+
+			else hit diffuse object {
+				1. Sample direct light and DONT FORGET VISIBILITY TERM (i.e. check if it's in shadow), and recall whether or not it's in shadow doesn't impact the pdf, and store it's value and the pdf wrt solid angle of the value (which is pdf_surface_area * cos(theta') / dist^2).
+				2. radiance += direct_light * rho(omega_in = direct_light_dir, omega_out = -ray_dir) * absdot(omega_in=direct_light_dir, normal) * throughput / direct_light_pdf;
+				3. New raydir = new cosine weighted sample. Store pdf of that sample, which is just cosine(theta) / pi.
+				4. throughput *= rho(omega_in = new_ray_dir, omega_out = -old_ray_dir) * absdot(omega_in=new_ray_dir, normal) / cosine_pdf;
+
+				5. Define some probability of death q proportional to low-ness of throughput value. 
+				6. If rng() > q {
+						break;
+				   }
+				   Else {
+				   		throughput /= 1-q;
+				   }
+			}
+
+			bounce += 1;
+			continue;
+
+		}
+
+		break;  // Also does not introduce bias, since the ray was still a legit sample from H^2, but the integrand happens to have evaluated to 0.
+	}
+
+}
+
+radiance /= n;
