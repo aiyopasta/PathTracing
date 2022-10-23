@@ -123,11 +123,10 @@ void main()  {
         vec3 h = normalize(l + v);
         vec3 n = isect.nor;
 
-        float ambient = 0.3;
+        float ambient = 0.5;
         float diffuse = max(dot(n, l), 0);
         float specular = diffuse != 0 ? pow(max(dot(n, h), 0), 50) : 0.0;
         rgb = vec3((0.3 * ambient_col * ambient) + light_col * ((1. * diffuse) + (0.3 * specular)));
     }
     frag_color = vec4(rgb, 1.0);
-
 }
