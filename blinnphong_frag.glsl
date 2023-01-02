@@ -43,7 +43,7 @@ IntersectionPoint intersect_triangle(vec3 origin, vec3 dir) {
         return isect;
     }
 
-    float t = dot(n, vec3(0, 0, -1000) - origin) / dot(n, dir);
+    float t = dot(n, v0 - origin) / dot(n, dir);
     // Triangle behind the origin
     if (t <= 0) {
         return isect;
@@ -130,3 +130,10 @@ void main()  {
     }
     frag_color = vec4(rgb, 1.0);
 }
+
+//            if (length(shadow_isect.pos - light_point) < 0.001) {
+//                float dist = length(shadow_isect.pos - isect.pos);
+//                float pdf_A = 1.0 / length(cross(basis1, basis2));
+//                float pdf_omega = pdf_A * dot(shadow_isect.nor, -shadow_dir) / (dist * dist);
+//                radiance += Le * (albedo / PI) * abs(dot(isect.nor, shadow_dir)) * throughput / pdf_omega;
+//            }
